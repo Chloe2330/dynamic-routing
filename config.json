@@ -1,0 +1,9 @@
+{
+    "routers": ["A", "B", "C", "D"],
+    "links": [
+        {"from": "A", "to": "B", "cost": 1},
+        {"from": "A", "to": "C", "cost": 4},
+        {"from": "B", "to": "C", "cost": 2},
+        {"from": "C", "to": "D", "cost": 3}
+    ]
+}
