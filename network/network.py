@@ -7,11 +7,11 @@ class NetworkGraph:
 
     def add_router(self, id):
         self.routers.append(id)
-        self.links[id] = []
+        self.links[id] = {}
 
     def add_link(self, from_router, to_router, cost):
-        self.links[from_router].append((to_router, cost))
-        self.links[to_router].append((from_router, cost))
+        self.links[from_router][to_router] = cost
+        self.links[to_router][from_router] = cost
 
     def __str__(self):
         return str(self.links)

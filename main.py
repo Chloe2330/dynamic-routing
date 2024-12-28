@@ -6,16 +6,16 @@ def main():
     network.update_from_config('config.json')
 
     num_routers = len(network.routers)
-
     routers = {}
+
     for id in network.routers:
-        router = Router(id, num_routers)
-        neighbors = network.links.get(id, [])
-        router.initialize_distance_vector(neighbors)
+        neighbors = network.links[id]
+        router = Router(id, num_routers, neighbors)
+        router.initialize_distance_vector()
         routers[id] = router
     
-    return network, routers
+    return routers
 
 if __name__ == "__main__":
-    network, routers = main()
+    routers = main()
     print("Network and routers initialized in main.py")
