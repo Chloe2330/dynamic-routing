@@ -2,11 +2,11 @@ import json
 
 class NetworkGraph:
     def __init__(self):
-        self.routers = [] 
+        self.router_ids = [] 
         self.links = {}
 
     def add_router(self, id):
-        self.routers.append(id)
+        self.router_ids.append(id)
         self.links[id] = {}
 
     def add_link(self, from_router, to_router, cost):
@@ -20,10 +20,15 @@ class NetworkGraph:
         with open(json_file, 'r') as file: 
             data = json.load(file)
         
-        # Add routers 
+        # Add router_ids 
         for router in data.get("routers", []):
             self.add_router(router)
         
         # Add links
         for link in data.get("links", []):
             self.add_link(link["from"], link["to"], link["cost"])
+    
+    def __eq__(self, other):
+        if isinstance(other, NetworkGraph):
+            return self.router_ids == other.router_ids and self.links == other.links
+        return False 
