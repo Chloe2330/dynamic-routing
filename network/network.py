@@ -2,11 +2,11 @@ import json
 
 class NetworkGraph:
     def __init__(self):
-        self.router_ids = [] 
+        self.router_ids = set() 
         self.links = {}
 
     def add_router(self, id):
-        self.router_ids.append(id)
+        self.router_ids.add(id)
         self.links[id] = {}
 
     def add_link(self, from_router, to_router, cost):
