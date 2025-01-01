@@ -20,12 +20,14 @@ async def run_dvr():
         print(f"{router.id}: {router.vector}")
 
     while True: 
-        print("Listening for changes in the config file...")
-        await asyncio.sleep(10)
+        # print("Listening for changes in the config file...")
+        await asyncio.sleep(1)
         updated, new_network = await asyncio.create_task(update_network_continuously(network, routers))
         network = new_network
         if updated:
             print("Change detected!")
+            for router in routers.values():
+                print(f"{router.id}: {router.vector}")
             
             tasks = []
             for router in routers.values():
