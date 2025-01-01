@@ -1,4 +1,9 @@
-# Dynamic Routing Simulations
+# Asynchronous Dynamic Routing Simulations
+
+Uses `asyncio` to simulate concurrent message exchanges in distance vector routing, where routers update their own vectors using the Bellman-Ford algorithm to find the shortest routing paths.
+
+**Dependencies**
+- Python 3.x, git
 
 ## Distance-vector routing (Bellman-Ford)
 1. Clone the repository:
