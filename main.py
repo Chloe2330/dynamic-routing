@@ -46,7 +46,8 @@ async def update_network_continuously(network, routers):
                 routers[neighbor_id].neighbors = new_network.links[neighbor_id]
             
             # Compare (pre-existing) links between old and new network
-            compare_links(routers, old_network, new_network, id)
+            if id in old_network.links and id in new_network.links: 
+                compare_links(routers, old_network, new_network, id)
                 
         for id in old_network.router_ids:
             # Remove old router
