@@ -1,18 +1,22 @@
 import asyncio
 from math import inf
+from distance_vector.poison_reverse import get_poison_reverse
 
 class Router:
-    def __init__(self, id, num_routers, neighbors):
+    def __init__(self, id, neighbors):
         self.id = id
-        self.vector = [(inf, "") for _ in range(num_routers)]
-        self.vector[int(self.id)] = (0, self.id)
+        self.vector = {}
         self.neighbors = neighbors
         self.queue = asyncio.Queue()
 
-    def initialize_distance_vector(self):
+    def initialize_distance_vector(self, router_ids):
+        for id in router_ids:
+            if id == self.id:
+                self.vector[id] = (0, self.id)
+            else:
+                self.vector[id] = (inf, "")
         for neighbor_id, cost in self.neighbors.items():
-            index = int(neighbor_id)
-            self.vector[index] = (cost, neighbor_id)
+            self.vector[neighbor_id] = (cost, neighbor_id)
     
     async def send_distance_vector(self, routers):
         for neighbor_id in self.neighbors:
@@ -24,17 +28,27 @@ class Router:
                 sender_id, distance_vector = await asyncio.wait_for(self.queue.get(), timeout=2)
                 cost = self.neighbors[sender_id]
 
-                # Bellman-Ford
-                for i in range(len(self.vector)):
-                    new_cost = cost + distance_vector[i][0]
-                    if new_cost < self.vector[i][0]:
-                        self.vector[i] = (new_cost, sender_id)
+                if not get_poison_reverse():
+                    # Bellman-Ford
+                    for dest_id in self.vector:
+                        new_cost = cost + distance_vector[dest_id][0]
+                        if new_cost < self.vector[dest_id][0]: 
+                            self.vector[dest_id] = (new_cost, sender_id)
 
-                        print(f"Router {self.id} vector is updated using Router {sender_id} vector.")
-                        for router in routers.values():
-                            print(f"{router.id}: {router.vector}")
-                        await self.send_distance_vector(routers)
-    
+                            print(f"Router {self.id} vector is updated using Router {sender_id} vector.")
+                            for router in routers.values():
+                                print(f"{router.id}: {router.vector}")
+                            await self.send_distance_vector(routers)
+                else:
+                    # Poison reverse
+                    for dest_id in self.vector:
+                        if distance_vector[dest_id] == (inf, "") and self.vector[dest_id][1] == sender_id:
+                            self.vector[dest_id] = (inf, "")
+
+                            print(f"Router {self.id} vector is poisoned by Router {sender_id} vector.")
+                            for router in routers.values():
+                                print(f"{router.id}: {router.vector}")
+                            await self.send_distance_vector(routers)
             except asyncio.TimeoutError:
                 break
 

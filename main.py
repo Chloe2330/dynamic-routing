@@ -1,18 +1,17 @@
 from math import inf
 from network.network import NetworkGraph
 from network.router import Router
+from distance_vector.poison_reverse import set_poison_reverse
 
 def main():
     network = NetworkGraph()
     network.update_from_config('config.json')
-
-    num_routers = len(network.router_ids)
     routers = {}
 
     for id in network.router_ids:
         neighbors = network.links[id]
-        router = Router(id, num_routers, neighbors)
-        router.initialize_distance_vector()
+        router = Router(id, neighbors)
+        router.initialize_distance_vector(network.router_ids)
         routers[id] = router
     
     return network, routers
@@ -23,7 +22,6 @@ async def update_network_continuously(network, routers):
 
     new_network = NetworkGraph()
     new_network.update_from_config('config.json')
-    num_routers = len(new_network.router_ids)
 
     # Change in network config 
     if old_network != new_network:
@@ -33,7 +31,7 @@ async def update_network_continuously(network, routers):
 
             # Add new router
             if id not in routers.keys():
-                add_router(routers, id, num_routers, new_network)
+                add_router(routers, id, new_network)
 
             neighbors = new_network.links[id]
 
@@ -42,7 +40,7 @@ async def update_network_continuously(network, routers):
 
                 # Add new router 
                 if neighbor_id not in routers:
-                    add_router(routers, neighbor_id, num_routers, new_network)
+                    add_router(routers, neighbor_id, new_network)
                 routers[neighbor_id].neighbors = new_network.links[neighbor_id]
             
             # Compare (pre-existing) links between old and new network
@@ -56,22 +54,22 @@ async def update_network_continuously(network, routers):
      
     return updated, new_network
 
-def add_router(routers, id, num_routers, new_network):
+def add_router(routers, id, new_network):
     neighbors = new_network.links[id]
     neighbors_set = set()
 
     # Update neighbors in the network
     for neighbor_id, cost in neighbors.items():
         neighbors_set.add(neighbor_id)
-        routers[neighbor_id].vector.insert(int(id), (cost, id)) 
+        routers[neighbor_id].vector[id] = (cost, id) 
 
     # Update non-neighbor in the network
     for router in routers.values():
         if router.id not in neighbors_set: 
-            router.vector.insert(int(id), (inf, ''))
+            router.vector[id] = (inf, '')
 
-    router = Router(id, num_routers, neighbors)
-    router.initialize_distance_vector()
+    router = Router(id, neighbors)
+    router.initialize_distance_vector(new_network.router_ids)
     routers[id] = router
 
 def remove_router(routers, id):
@@ -79,12 +77,11 @@ def remove_router(routers, id):
 
     # Update other routers in the network
     for router in routers.values():
-        router.vector.pop(int(id))
-        for i in range(len(router.vector)):
-            _, next_hop = router.vector[i]
-            # Link is down 
+        del router.vector[id]
+        for dest_id, (_, next_hop) in router.vector.items():
+            # Link is down
             if next_hop == id:
-                router.vector[i] = (inf, '')
+                router.vector[dest_id] = (inf, '')
 
 def compare_links(routers, old_network, new_network, id):
     neighbors = new_network.links[id]
@@ -92,13 +89,21 @@ def compare_links(routers, old_network, new_network, id):
 
     for neighbor_id, cost in neighbors.items():
         if neighbor_id in old_neighbors:
-            # Edge case where link cost increases (Bellman Ford won't autocorrect)
+            # Link cost increases! (Poison reverse)
             if cost > old_neighbors[neighbor_id]:
-                for i in range(len(routers[id].vector)):
-                    _, next_hop = routers[id].vector[i]
-                    if next_hop == neighbor_id:
-                        # Manually update distance vector with new cost
-                        routers[id].vector[i] = (cost, neighbor_id)
+                poison_reverse(routers, id, neighbor_id)
+
+def poison_reverse(routers, id, neighbor_id):
+    for key in routers:
+        if key == id:
+            for dest_id, (_, next_hop) in routers[id].vector.items():
+                if next_hop == neighbor_id:
+                    routers[id].vector[dest_id] = (inf, "")
+        elif key == neighbor_id:
+            for dest_id, (_, next_hop) in routers[neighbor_id].vector.items():
+                if next_hop == id:
+                    routers[neighbor_id].vector[dest_id] = (inf, "")
+    set_poison_reverse(True)
 
 if __name__ == "__main__":
     network, routers = main()
