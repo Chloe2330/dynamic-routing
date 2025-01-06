@@ -1,6 +1,6 @@
 import asyncio
 from math import inf
-from distance_vector.poison_reverse import get_poison_reverse
+from distance_vector.poison_reverse import state_manager
 
 class Router:
     def __init__(self, id, neighbors):
@@ -28,7 +28,7 @@ class Router:
                 sender_id, distance_vector = await asyncio.wait_for(self.queue.get(), timeout=2)
                 cost = self.neighbors[sender_id]
 
-                if not get_poison_reverse():
+                if not state_manager.get_poison_reverse():
                     # Bellman-Ford
                     for dest_id in self.vector:
                         new_cost = cost + distance_vector[dest_id][0]

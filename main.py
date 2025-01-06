@@ -1,7 +1,7 @@
 from math import inf
 from network.network import NetworkGraph
 from network.router import Router
-from distance_vector.poison_reverse import set_poison_reverse
+from distance_vector.poison_reverse import state_manager
 
 def main():
     network = NetworkGraph()
@@ -103,7 +103,7 @@ def poison_reverse(routers, id, neighbor_id):
             for dest_id, (_, next_hop) in routers[neighbor_id].vector.items():
                 if next_hop == id:
                     routers[neighbor_id].vector[dest_id] = (inf, "")
-    set_poison_reverse(True)
+    state_manager.set_poison_reverse(True)
 
 if __name__ == "__main__":
     network, routers = main()

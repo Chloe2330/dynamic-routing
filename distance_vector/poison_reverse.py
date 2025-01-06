@@ -1,9 +1,11 @@
-poison_reverse = False
+class StateManager:
+    def __init__(self):
+        self.poison_reverse = False
 
-def set_poison_reverse(value): 
-    global poison_reverse
-    poison_reverse = value 
+    def set_poison_reverse(self, value):
+        self.poison_reverse = value
 
-def get_poison_reverse(): 
-    global poison_reverse
-    return poison_reverse
+    def get_poison_reverse(self):
+        return self.poison_reverse
+    
+state_manager = StateManager()
