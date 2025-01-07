@@ -2,7 +2,7 @@
 
 Uses `asyncio` to simulate all routers concurrently exchanging messages and executing algorithms in:
 1. **Distance Vector Routing**: Routers with decentralized information about their neighbors update their vectors using the Bellman-Ford algorithm to find optimal routing paths.
-2. **Link State Routing**: Routers with a global network view use Dijkstra's algorithm to create a shortest path tree for optimal routing paths.
+2. **Link State Routing**: Routers with a global network view create a shortest path tree using Dijkstra's algorithm to find optimal routing paths.
 
 ## Dependencies
 - Python 3.x, git
@@ -28,6 +28,8 @@ python -u "distance_vector/dvr.py"
 ```sh
 python -u "link_state/lsr.py"
 ```
+* *Typically, each router floods the network with advertisements and constructs its own network graph from the received data. For simplicity, I create the graph once for all routers to share.*
+
 ### Notes 
 - **Scope**: Only supports simple, undirected network graph topologies.
 - **Live Update**: 
