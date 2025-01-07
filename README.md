@@ -1,11 +1,12 @@
 # Asynchronous Dynamic Routing Simulations
 
-Uses `asyncio` to simulate concurrent message exchanges in distance vector routing, where routers update their own vectors using the Bellman-Ford algorithm to find the shortest routing paths.
+Uses `asyncio` to simulate all routers concurrently exchanging messages and executing algorithms in:
+1. **Distance Vector Routing**: Routers with decentralized information about their neighbors update their vectors using the Bellman-Ford algorithm to find optimal routing paths.
+2. **Link State Routing**: Routers with a global network view use Dijkstra's algorithm to create a shortest path tree for optimal routing paths.
 
-**Dependencies**
+## Dependencies
 - Python 3.x, git
 
-## Distance-vector routing (Bellman-Ford)
 1. Clone the repository:
 ```sh
 git clone https://github.com/Chloe2330/dynamic-routing.git
@@ -15,23 +16,21 @@ git clone https://github.com/Chloe2330/dynamic-routing.git
 cd dynamic-routing
 export PYTHONPATH="$(pwd):$PYTHONPATH"
 ```
+
+## Distance-vector routing (Bellman-Ford)
 3. Run DVR Simulation
 ```sh
-python -u "distance-vector/dvr.py"
+python -u "distance_vector/dvr.py"
 ```
-### In Progress
-#### Highest priorities 
-- Change distance vector type from array of 2-tuples to dict with char/string key (dest router ID) and a 2-tuple value (cost, next hop)
-- Graceful exit with Ctrl + C
-#### Lower priorities
-- Write a test suite (scripts to automate creation/update of config files)
-- Use `watchdog` for smoother file monitoring and event handling
 
+## Link-state routing (Dijkstra)
+3. Run LSR Simulation 
+```sh
+python -u "link_state/lsr.py"
+```
 ### Notes 
 - **Scope**: Only supports simple, undirected network graph topologies.
 - **Live Update**: 
     - Disable auto-save in VS Code to avoid premature JSON processing
     - Manually save `config.json` after finalizing changes 
 - **Restrictions**: Invalid or complex graphs (e.g., non-existent nodes, multiple edges between nodes) will cause errors or invalid results
-
-## Link-state routing (Dijkstra)
