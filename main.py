@@ -16,7 +16,7 @@ def main():
     
     return network, routers
 
-async def update_network_continuously(network, routers):
+async def update_network_continuously(network, routers, dvr):
     updated = False
     old_network = network
 
@@ -43,9 +43,9 @@ async def update_network_continuously(network, routers):
                     add_router(routers, neighbor_id, new_network)
                 routers[neighbor_id].neighbors = new_network.links[neighbor_id]
             
-            # Compare (pre-existing) links between old and new network
-            if id in old_network.links and id in new_network.links: 
-                compare_links(routers, old_network, new_network, id)
+            # Compare (pre-existing) links between old and new networks
+            if id in old_network.links and id in new_network.links:
+                compare_links(routers, old_network, new_network, id, dvr)
                 
         for id in old_network.router_ids:
             # Remove old router
@@ -83,15 +83,24 @@ def remove_router(routers, id):
             if next_hop == id:
                 router.vector[dest_id] = (inf, '')
 
-def compare_links(routers, old_network, new_network, id):
+def reset_routers(routers, new_network):
+    for router in routers.values():
+        router.initialize_distance_vector(new_network.router_ids)
+
+def compare_links(routers, old_network, new_network, id, dvr):
     neighbors = new_network.links[id]
     old_neighbors = old_network.links[id]
 
     for neighbor_id, cost in neighbors.items():
         if neighbor_id in old_neighbors:
-            # Link cost increases! (Poison reverse)
+            # Link cost increases!
             if cost > old_neighbors[neighbor_id]:
-                poison_reverse(routers, id, neighbor_id)
+                # Poison reverse 
+                if dvr:
+                    poison_reverse(routers, id, neighbor_id)
+                # Link-state recalculation 
+                else:
+                    reset_routers(routers, new_network)
 
 def poison_reverse(routers, id, neighbor_id):
     for key in routers:

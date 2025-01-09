@@ -26,7 +26,7 @@ async def run_dvr(network, routers):
     stop_event = get_stop_event()
     while not stop_event.is_set(): 
         await asyncio.sleep(1)
-        updated, new_network = await asyncio.create_task(update_network_continuously(network, routers))
+        updated, new_network = await asyncio.create_task(update_network_continuously(network, routers, True))
         network = new_network
         if updated or post_poison_reverse:
             post_poison_reverse = False 

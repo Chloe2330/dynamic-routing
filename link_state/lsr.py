@@ -11,7 +11,7 @@ async def run_lsr(network, routers):
 
     tasks = []
     for router in routers.values():
-        tasks.append(router.run_lsr(network))
+        tasks.append(router.run_lsr(network, routers))
 
     await asyncio.gather(*tasks)
 
@@ -21,23 +21,20 @@ async def run_lsr(network, routers):
 
     print("Listening for changes in the config file...")
 
-    # post_poison_reverse = False 
-
-    # stop_event = get_stop_event()
-    # while not stop_event.is_set(): 
-    #     await asyncio.sleep(1)
-    #     updated, new_network = await asyncio.create_task(update_network_continuously(network, routers))
-    #     network = new_network
-    #     if updated or post_poison_reverse:
-    #         post_poison_reverse = False 
-    #         print("Change detected!")
-    #         for router in routers.values():
-    #             print(f"{router.id}: {router.vector}")
+    stop_event = get_stop_event()
+    while not stop_event.is_set(): 
+        await asyncio.sleep(1)
+        updated, new_network = await asyncio.create_task(update_network_continuously(network, routers, False))
+        network = new_network
+        if updated:
+            print("Change detected!")
+            for router in routers.values():
+                print(f"{router.id}: {router.vector}")
             
-    #         tasks = []
-    #         for router in routers.values():
-    #             tasks.append(router.run_dvr(routers))
-    #         await asyncio.gather(*tasks)
+            tasks = []
+            for router in routers.values():
+                tasks.append(router.run_lsr(network, routers))
+            await asyncio.gather(*tasks)
 
 async def lsr_main():
     setup_signal_handler()

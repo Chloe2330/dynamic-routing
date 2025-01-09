@@ -59,27 +59,33 @@ class Router:
             self.receive_distance_vector(routers)
         )
 
-    async def run_dijkstra(self, network):
+    async def run_dijkstra(self, network, routers):
         start = self.id
-        visited = set()
-        pq = []
-
-        heapq.heappush(pq, (self.vector[start][0], start)) # push (distance, router ID) 
+        dist = {router: inf for router in network.router_ids}
+        dist[start] = 0
+        visited, pq = set(), [(0, start)]
 
         while pq:
             current_distance, current_router = heapq.heappop(pq)
 
             if current_router in visited:
                 continue
-
             visited.add(current_router)
 
             for neighbor, weight in network.links[current_router].items():
                 new_distance = current_distance + weight
-                if new_distance <= self.vector[neighbor][0]:
-                    self.vector[neighbor] = (new_distance, current_router) 
-                    heapq.heappush(pq, (new_distance, neighbor))
 
-    async def run_lsr(self, network):
-        await asyncio.gather(self.run_dijkstra(network))
+                if new_distance < dist[neighbor]:
+                    dist[neighbor] = new_distance
+                    heapq.heappush(pq, (new_distance, neighbor))
+                
+                if new_distance < self.vector[neighbor][0]:
+                    self.vector[neighbor] = (new_distance, current_router) 
+
+                    print(f"Router {self.id} table entry to Router {neighbor} is updated.")
+                    for router in routers.values():
+                        print(f"{router.id}: {router.vector}")
+
+    async def run_lsr(self, network, routers):
+        await asyncio.gather(self.run_dijkstra(network, routers))
     
