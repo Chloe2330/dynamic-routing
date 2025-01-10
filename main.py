@@ -41,6 +41,7 @@ async def update_network_continuously(network, routers, dvr):
                 # Add new router 
                 if neighbor_id not in routers:
                     add_router(routers, neighbor_id, new_network)
+                
                 routers[neighbor_id].neighbors = new_network.links[neighbor_id]
             
             # Compare (pre-existing) links between old and new networks
@@ -87,6 +88,14 @@ def reset_routers(routers, new_network):
     for router in routers.values():
         router.initialize_distance_vector(new_network.router_ids)
 
+def handle_link_change(routers, new_network, id, neighbor_id, dvr):
+    if dvr:
+        # Poison reverse (DVR)
+        poison_reverse(routers, id, neighbor_id)
+    else:
+        # Link-state recalculation (LSR)
+        reset_routers(routers, new_network)
+
 def compare_links(routers, old_network, new_network, id, dvr):
     neighbors = new_network.links[id]
     old_neighbors = old_network.links[id]
@@ -95,12 +104,12 @@ def compare_links(routers, old_network, new_network, id, dvr):
         if neighbor_id in old_neighbors:
             # Link cost increases!
             if cost > old_neighbors[neighbor_id]:
-                # Poison reverse 
-                if dvr:
-                    poison_reverse(routers, id, neighbor_id)
-                # Link-state recalculation 
-                else:
-                    reset_routers(routers, new_network)
+                handle_link_change(routers, new_network, id, neighbor_id, dvr)
+    
+    for neighbor_id, cost in old_neighbors.items():
+        # Link removed! 
+        if neighbor_id not in neighbors:
+            handle_link_change(routers, new_network, id, neighbor_id, dvr)
 
 def poison_reverse(routers, id, neighbor_id):
     for key in routers:

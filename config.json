@@ -1,9 +1,13 @@
 {
-    "routers": ["0", "1", "2"],
+    "routers": ["A", "B", "C", "D", "E", "F"],
     "links": [
-        {"from": "0", "to": "1", "cost": 7},
-        {"from": "0", "to": "2", "cost": 5},
-        {"from": "1", "to": "2", "cost": 1}
+        {"from": "A", "to": "B", "cost": 1}, 
+        {"from": "B", "to": "C", "cost": 1},
+        {"from": "C", "to": "F", "cost": 1}, 
+        {"from": "E", "to": "F", "cost": 1},
+        {"from": "D", "to": "E", "cost": 4}, 
+        {"from": "E", "to": "B", "cost": 4},
+        {"from": "A", "to": "D", "cost": 4}
     ]
 }
 
